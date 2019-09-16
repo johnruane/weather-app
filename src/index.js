@@ -17,21 +17,6 @@ export default class WeatherApp extends React.Component {
     };
   }
 
-  componentDidMount() {
-
-    if (window.localStorage.getItem('saved-weather')) {
-      this.setState({
-        savedWeatherList: window.localStorage.getItem('saved-weather').split(','),
-      })
-    }
-
-    // window.addEventListener('beforeunload', (event) => {
-    //   event.preventDefault();
-    //   event.returnValue = '';
-    //   window.localStorage.setItem('saved-weather', this.state.savedWeatherList.toString());
-    // });
-  }
-
   handleChange(event) {
     this.setState({inputValue: event.target.value});
     if (event.target.value.length > 2) {
@@ -64,7 +49,6 @@ export default class WeatherApp extends React.Component {
       selectionId: event.currentTarget.id,
       autoComplete: []
     });
-    // this.getWeather(selection);
   }
 
   async handleSubmit(event) {
@@ -92,7 +76,7 @@ export default class WeatherApp extends React.Component {
     })
   }
 
-  handleClose(event) {
+  handleClose() {
     this.setState({
       apiWeatherResponseObj: [],
     })
@@ -102,7 +86,7 @@ export default class WeatherApp extends React.Component {
     const API_CALL = `http://api.openweathermap.org/data/2.5/weather?&units=metric&id=${id}&appid=1f2d551b407d5fe41b27a5e4bd5fd3ad`;
     const response = await fetch(API_CALL);
     const data = await response.json();
-    // console.log(data);
+    console.log(data);
     return data;
   }
 
@@ -126,21 +110,21 @@ export default class WeatherApp extends React.Component {
             <button className="input-form-submit" type="submit" value="Submit">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M23.822 20.88l-6.353-6.354c.93-1.465 1.467-3.2 1.467-5.059.001-5.219-4.247-9.467-9.468-9.467s-9.468 4.248-9.468 9.468c0 5.221 4.247 9.469 9.468 9.469 1.768 0 3.421-.487 4.839-1.333l6.396 6.396 3.119-3.12zm-20.294-11.412c0-3.273 2.665-5.938 5.939-5.938 3.275 0 5.94 2.664 5.94 5.938 0 3.275-2.665 5.939-5.94 5.939-3.274 0-5.939-2.664-5.939-5.939z"/></svg>
             </button>
+            {
+              this.state.autoComplete.length > 0 &&
+                <ul className="auto-complete-list">
+                  {this.state.autoComplete.slice(0, -1).map((value) => {
+                    return ([
+                      <li className="auto-complete-list-item" key={value.id}>
+                        <span className="auto-complete-span" id={value.id} 
+                          onClick={(evt) => this.handleClick(evt)}>{value.name } - {value.country}
+                        </span>
+                      </li>
+                    ])
+                  })}
+                </ul>
+            }
           </div>
-          {
-            this.state.autoComplete.length > 0 &&
-              <ul className="auto-complete-list">
-                {this.state.autoComplete.slice(0, -1).map((value) => {
-                  return ([
-                    <li className="auto-complete-list-item" key={value.id}>
-                      <span className="auto-complete-span" id={value.id} 
-                        onClick={(evt) => this.handleClick(evt)}>{value.name } - {value.country}
-                      </span>
-                    </li>
-                  ])
-                })}
-              </ul>
-          }
         </form>
           {
             this.state.savedWeatherList.length > 0 &&
@@ -152,8 +136,8 @@ export default class WeatherApp extends React.Component {
                       <span className="close" id={value.id} onClick={(evt) => this.removeFromSavedList(evt)}/>
                       <p className={`saved-weather-icon saved-weather-description weather-${value.icon}`}>{value.description}</p>
                       <p className="saved-weather-temp">{(value.temp).toFixed(0)}°C</p>
-                      <p className="weather-icon saved-weather-wind-speed">{(value.wind).toFixed(0)}mph</p>
-                      <p className="weather-icon saved-weather-humidity">{value.humidity}%</p>
+                      <p className="saved-weather-icon saved-weather-wind-speed">{(value.wind).toFixed(0)}mph</p>
+                      <p className="saved-weather-icon saved-weather-humidity">{value.humidity}%</p>
                     </div>
                   ])
                 })}
