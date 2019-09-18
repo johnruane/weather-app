@@ -31,10 +31,27 @@ export default class WeatherApp extends React.Component {
     for (var i in data) {
       let cityName = data[i].name;
       if (cityName.toLowerCase().indexOf(input.toLowerCase()) === 0) {
-        matches.push(data[i]);
+        if (this.isUnique(matches, data[i])) {
+          matches.push(data[i]);
+        }
       }
     }
-    return matches;
+
+    return matches.sort(function(a,b) {
+      return a.name.length - b.name.length;
+    });
+  }
+
+  isUnique(currentList, itemToCheck) {
+    if (currentList.length === 0) {
+      return true;
+    }
+    for (let i=0; i<currentList.length; i++) {
+      if (currentList[i].name === itemToCheck.name && currentList[i].country === itemToCheck.country) {
+        return false;
+      } 
+    }
+    return true;
   }
 
   updateAutoComplete(list) {
@@ -63,11 +80,20 @@ export default class WeatherApp extends React.Component {
       icon: requestedWeather.weather[0].icon,
       wind: requestedWeather.wind.speed,
       humidity: requestedWeather.main.humidity,
+      timezone: requestedWeather.timezone,
+      time: this.calculateTimezone(requestedWeather.timezone),
     }
     this.setState({
       apiWeatherResponseObj: trimmedWeather,
     })
     this.saveWeather();
+  }
+
+  calculateTimezone(adjustment) {
+    adjustment = adjustment - 3600;
+    const newdate = (adjustment > 0) ? new Date(Date.now() + adjustment*1000) : new Date(Date.now() - adjustment*1000);
+    const simpleTime = `${newdate.getHours()}:${newdate.getMinutes()}`;
+    return simpleTime;
   }
 
   saveWeather() {
@@ -112,6 +138,7 @@ export default class WeatherApp extends React.Component {
             </button>
             {
               this.state.autoComplete.length > 0 &&
+              <div className="test">
                 <ul className="auto-complete-list">
                   {this.state.autoComplete.slice(0, -1).map((value) => {
                     return ([
@@ -123,6 +150,7 @@ export default class WeatherApp extends React.Component {
                     ])
                   })}
                 </ul>
+              </div>
             }
           </div>
         </form>
@@ -138,6 +166,7 @@ export default class WeatherApp extends React.Component {
                       <p className="saved-weather-temp">{(value.temp).toFixed(0)}°C</p>
                       <p className="saved-weather-icon saved-weather-wind-speed">{(value.wind).toFixed(0)}mph</p>
                       <p className="saved-weather-icon saved-weather-humidity">{value.humidity}%</p>
+                      <p className="saved-weather-time">{value.time}+{(value.timezone-3600)/60/60}</p>
                     </div>
                   ])
                 })}
@@ -149,65 +178,3 @@ export default class WeatherApp extends React.Component {
 }
 
 ReactDOM.render(<WeatherApp />, document.getElementById('root'));
-
-// base: "stations"
-// ​
-// clouds: Object { all: 20 }
-// ​
-// cod: 200
-// ​
-// coord: Object { lon: -0.13, lat: 51.51 }
-// ​
-// dt: 1568232368
-// ​
-// id: 2643743
-// ​
-// main: {…}
-// ​​
-// humidity: 93
-// ​​
-// pressure: 1022
-// ​​
-// temp: 290.4
-// ​​
-// temp_max: 292.15
-// ​​
-// temp_min: 288.71
-// ​​
-// <prototype>: Object { … }
-// ​
-// name: "London"
-// ​
-// sys: Object { type: 1, id: 1412, message: 0.0109, … }
-// ​
-// timezone: 3600
-// ​
-// visibility: 10000
-// ​
-// weather: (1) […]
-// ​​
-// 0: {…}
-// ​​​
-// description: "few clouds"
-// ​​​
-// icon: "02n"
-// ​​​
-// id: 801
-// ​​​
-// main: "Clouds"
-// ​​​
-// <prototype>: Object { … }
-// ​​
-// length: 1
-// ​​
-// <prototype>: Array []
-// ​
-// wind: {…}
-// ​​
-// deg: 230
-// ​​
-// speed: 4.1
-// ​​
-// <prototype>: Object { … }
-// ​
-// <prototype>: {…
