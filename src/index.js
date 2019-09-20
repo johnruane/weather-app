@@ -1,5 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import Weather from "./Weather.js";
+import Summary from "./Summary.js";
 import './index.css';
 import data from './citylist.json';
 
@@ -14,6 +16,8 @@ export default class WeatherApp extends React.Component {
       autoComplete: [],
       apiWeatherResponseObj: {},
       savedWeatherList: [],
+      currentWeatherRequest: {},
+      showWeather: false,
     };
   }
 
@@ -71,63 +75,86 @@ export default class WeatherApp extends React.Component {
   async handleSubmit(event) {
     event.preventDefault();
     const { selectionId } = this.state;
-    let requestedWeather = await this.getWeather(selectionId);
-    let trimmedWeather = {
-      id:  requestedWeather.id,
-      city: this.state.selection,
-      temp: requestedWeather.main.temp,
-      description: requestedWeather.weather[0].description,
-      icon: requestedWeather.weather[0].icon,
-      wind: requestedWeather.wind.speed,
-      humidity: requestedWeather.main.humidity,
-      timezone: requestedWeather.timezone,
-      time: this.calculateTimezone(requestedWeather.timezone),
+    let requestedWeather
+    try {
+      requestedWeather = await this.getWeather(selectionId);
+      let trimmedWeather = {
+        id:  requestedWeather.id,
+        city: this.state.selection,
+        temp: requestedWeather.main.temp,
+        // tempMax: requestedWeather.main.temp_max,
+        // tempMin: requestedWeather.main.temp_min,
+        description: requestedWeather.weather[0].description,
+        icon: requestedWeather.weather[0].icon,
+        wind: requestedWeather.wind.speed,
+        humidity: requestedWeather.main.humidity,
+        timezone: requestedWeather.timezone,
+        time: this.calculateTimezone(requestedWeather.timezone),
+      }
+      this.setState({
+        apiWeatherResponseObj: trimmedWeather,
+        showWeather: true,
+      })
+    } catch(err) {
+      console.log(err);
     }
-    this.setState({
-      apiWeatherResponseObj: trimmedWeather,
-    })
-    this.saveWeather();
   }
 
   calculateTimezone(adjustment) {
     adjustment = adjustment - 3600;
     const newdate = (adjustment > 0) ? new Date(Date.now() + adjustment*1000) : new Date(Date.now() - adjustment*1000);
-    const simpleTime = `${newdate.getHours()}:${newdate.getMinutes()}`;
+    const day = this.convertNumberToDay(newdate.getDay());
+    const meridian = (newdate.getHours() >= 12) ? 'pm' : 'am';
+    const simpleTime = `${day}, ${newdate.getHours()}:${newdate.getMinutes()}${meridian}`;
     return simpleTime;
   }
 
-  saveWeather() {
-    this.setState({
-      savedWeatherList: [this.state.apiWeatherResponseObj, ...this.state.savedWeatherList],
-    })
-  }
-
-  handleClose() {
-    this.setState({
-      apiWeatherResponseObj: [],
-    })
+  convertNumberToDay(d) {
+    const days = {
+      '0': 'Sun',
+      '1': 'Mon',
+      '2': 'Tues',
+      '3': 'Wed',
+      '4': 'Thu',
+      '5': 'Fri',
+      '6': 'Sat'
+    }
+    return days[d];
   }
 
   async getWeather(id) {
     const API_CALL = `http://api.openweathermap.org/data/2.5/weather?&units=metric&id=${id}&appid=1f2d551b407d5fe41b27a5e4bd5fd3ad`;
-    const response = await fetch(API_CALL);
-    const data = await response.json();
-    console.log(data);
-    return data;
+    
+    try {
+      const response = await fetch(API_CALL);
+      const data = await response.json();
+      console.log(data);
+      return data;
+    } catch (err) {
+      throw Error(err);
+    }
   }
 
   isEmpty(obj) {
     return Object.getOwnPropertyNames(obj).length === 0;
   }
 
-  removeFromSavedList(event) {
-    const id = parseInt(event.currentTarget.id);
+  addWeather() {
     this.setState({
-      savedWeatherList: this.state.savedWeatherList.filter((item) => item.id !== id),
-    });
+      savedWeatherList: [this.state.apiWeatherResponseObj, ...this.state.savedWeatherList],
+    })
+  }
+
+  closeWeather() {
+    this.setState({
+      inputValue: '',
+      showWeather: false,
+    })
   }
 
   render() {
+    const { showWeather, savedWeatherList } = this.state;
+    const showSummary = savedWeatherList.length > 0;
     return (
       <div className="weather-container">
         <form className="input-form" onSubmit={(evt) => this.handleSubmit(evt)}>
@@ -144,7 +171,7 @@ export default class WeatherApp extends React.Component {
                     return ([
                       <li className="auto-complete-list-item" key={value.id}>
                         <span className="auto-complete-span" id={value.id} 
-                          onClick={(evt) => this.handleClick(evt)}>{value.name } - {value.country}
+                          onClick={(evt) => this.handleClick(evt)}>{value.name } ({value.country})
                         </span>
                       </li>
                     ])
@@ -154,24 +181,13 @@ export default class WeatherApp extends React.Component {
             }
           </div>
         </form>
-          {
-            this.state.savedWeatherList.length > 0 &&
-              <div className="saved-weather">
-                {this.state.savedWeatherList.map((value, index) => {
-                  return ([
-                    <div key={index} className="saved-weather-display">
-                      <p className="saved-weather-city">{value.city}</p>
-                      <span className="close" id={value.id} onClick={(evt) => this.removeFromSavedList(evt)}/>
-                      <p className={`saved-weather-icon saved-weather-description weather-${value.icon}`}>{value.description}</p>
-                      <p className="saved-weather-temp">{(value.temp).toFixed(0)}°C</p>
-                      <p className="saved-weather-icon saved-weather-wind-speed">{(value.wind).toFixed(0)}mph</p>
-                      <p className="saved-weather-icon saved-weather-humidity">{value.humidity}%</p>
-                      <p className="saved-weather-time">{value.time}+{(value.timezone-3600)/60/60}</p>
-                    </div>
-                  ])
-                })}
-              </div>
-          }
+        { showWeather 
+          ? <Weather requestedWeather={this.state.apiWeatherResponseObj} eventCloseWeather={() => this.closeWeather()} eventAddWeather={() => this.addWeather()} />
+          : ( showSummary
+            ? <Summary savedWeather={savedWeatherList}/>
+            : null
+          )
+        }
       </div>
     );
   }
