@@ -53,9 +53,6 @@ code {
   padding: 0;
   fill: var(--main-text-color);
 }
-.input-form-submit:hover {
-  cursor: pointer;
-}
 .auto-complete-wrapper {
   background: white;
   border-radius: 4px;

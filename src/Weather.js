@@ -13,7 +13,7 @@ export default class Weather extends Component {
             <>
                 <div className="weather-display">
                     <span className="weather-close" onClick={() => eventCloseWeather()}/>
-                    <span className="weather-add" onClick={() => eventAddWeather()}/>
+                    {/* <span className="weather-add" onClick={() => eventAddWeather()}/> */}
                     <p className="weather-place">
                         <span className="weather-city">{requestedWeather.city}</span>
                         <span className="weather-time">{requestedWeather.time}</span>
