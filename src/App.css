@@ -1,0 +1,68 @@
+p{
+  padding: 1rem;
+  font-size: 1.5rem;
+}
+
+/* 
+will run on items added after initial mount
+*/
+.example-enter{
+  opacity: 0.01;
+}
+.example-enter-active{
+  opacity: 1;
+  transition: opacity 2000ms ease-in;
+}
+.example-enter-done{
+  opacity: 1;
+  background-color: #bada55;
+}
+/* 
+will run on any item being removed
+*/
+.example-exit{
+  opacity: 1;
+  background-color: lightskyblue;
+  color: white;
+}
+.example-exit-active{
+  opacity: 0.01;
+  transition: opacity 2000ms ease-in 500ms;
+  background-color: rebeccapurple;
+  color: white;
+}
+.example-exit-done{
+  opacity: 0;
+}
+/* 
+set to false by default.
+will run on initial mount only
+*/
+.example-appear{
+  opacity: 0.01;
+}
+.example-appear-active{
+  opacity: 1;
+  transition: opacity 2000ms ease-in;
+  background-color: fuchsia;
+}
+.example-appear-done{
+  /* doesn't exist  use -enter-done */
+}
+
+
+.hhh-appear{
+/*
+  color: red;
+  transition: color 1000ms linear;
+*/
+}
+.hhh-appear-active{
+  color: gold;
+  transition: color 2000ms linear;
+}
+.hhh-enter-done{
+  color: green;
+  transition: color 2000ms linear;
+}
+
